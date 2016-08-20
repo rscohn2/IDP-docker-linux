@@ -9,9 +9,11 @@ It uses miniconda as the installer and creates a conda environment in
     docker run -i -t rscohn2/idp3 /idp/bin/python
 
 Builds:
-- rsochn2/idp2
-- rsochn2/idp2:latest
+- rscohn2/idp2
+- rscohn2/idp2:latest
 - rscohn2/idp2:ubuntu.2017b1
-- rsochn2/idp3
-- rsochn2/idp3:latest
+- rscohn2/idp3
+- rscohn2/idp3:latest
 - rscohn2/idp3:ubuntu.2017b1
+
+[![Build Status](https://travis-ci.org/rscohn2/IDP-docker-ubuntu.svg?branch=master)](https://travis-ci.org/rscohn2/IDP-docker-ubuntu)
