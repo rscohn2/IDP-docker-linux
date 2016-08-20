@@ -18,7 +18,7 @@ RUN cd /tmp \
     && $MINICONDA/bin/conda update -q conda
 
 # Create IDP environment
-RUN $MINICONDA/bin/conda config --add channels intel \
+RUN $MINICONDA/bin/conda config --add channels intel/label/test \
     && ACCEPT_INTEL_PYTHON_EULA=yes $MINICONDA/bin/conda create -y -n idp intelpython${PYVER}_core python=${PYVER}
 
 RUN ln -s $MINICONDA/envs/idp .
