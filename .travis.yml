@@ -4,5 +4,5 @@ services:
         - docker
 
 script:
-        - docker build --build-args PYVER=2 -t rscohn2/idp2:ubuntu.2017b1
-        - docker build --build-args PYVER=3 -t rscohn2/idp3:ubuntu.2017b1
+        - docker build --build-arg PYVER=2 -t rscohn2/idp2:ubuntu.2017b1
+        - docker build --build-arg PYVER=3 -t rscohn2/idp3:ubuntu.2017b1
