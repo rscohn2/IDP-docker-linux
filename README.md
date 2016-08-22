@@ -17,3 +17,6 @@ Builds:
 - rscohn2/idp3.ubuntu:2017b1
 
 [![Build Status](https://travis-ci.org/rscohn2/IDP-docker-ubuntu.svg?branch=master)](https://travis-ci.org/rscohn2/IDP-docker-ubuntu)
+
+idp2: [![](https://images.microbadger.com/badges/image/rscohn2/idp2.ubuntu.svg)](http://microbadger.com/images/rscohn2/idp2.ubuntu "Get your own image badge on microbadger.com")
+idp3: [![](https://images.microbadger.com/badges/image/rscohn2/idp3.ubuntu.svg)](http://microbadger.com/images/rscohn2/idp3.ubuntu "Get your own image badge on microbadger.com")
