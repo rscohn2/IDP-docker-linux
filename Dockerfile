@@ -4,6 +4,7 @@ MAINTAINER Robert Cohn <Robert.S.Cohn@intel.com>
 
 RUN apt-get update && apt-get install -y \
     bzip2 \
+    numactl \
     wget
 
 ARG MINICONDA=/usr/local/miniconda3
