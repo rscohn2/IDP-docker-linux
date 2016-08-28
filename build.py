@@ -10,9 +10,7 @@ ret = 0
 def get_proxies():
     proxies = ''
     for var in ['http_proxy','https_proxy','no_proxy']:
-        print('checking',var)
         if var in os.environ:
-            print('found',var)
             proxies += ' --build-arg %s=%s' % (var,os.environ[var])
     return proxies
 
