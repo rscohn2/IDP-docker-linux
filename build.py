@@ -4,7 +4,6 @@ import subprocess
 
 dkr_acct = 'rscohn2'
 
-subprocess.check_call('docker login -u $DOCKER_USER -p $DOCKER_PASSWORD',shell=True)
 ret = 0
 
 def get_proxies():
@@ -14,7 +13,7 @@ def get_proxies():
             proxies += ' --build-arg %s=%s' % (var,os.environ[var])
     return proxies
 
-def build_os(os_version,py_versions=['2','3']):
+def build_os(os_version,py_versions=['2','3'],publish=True):
     for py_version in py_versions:
         try:
             print('Building %s' % py_version)
@@ -23,17 +22,19 @@ def build_os(os_version,py_versions=['2','3']):
             command = 'docker build %s --build-arg PYVER=%s %s --file Dockerfile.%s .' % (get_proxies(),py_version,tags,os_version)
             print(command)
             subprocess.check_call(command, shell=True)
-            subprocess.check_call('docker push %s' % repo,shell=True)
+            if publish:
+                subprocess.check_call('docker login -u $DOCKER_USER -p $DOCKER_PASSWORD',shell=True)
+                subprocess.check_call('docker push %s' % repo,shell=True)
         except:
             print('Failed building python%s for %s' % (py_version,os_version))
             ret = 1
             sys.exit(ret)
 
-def build_all(os_versions=['ubuntu','centos'],py_versions=['2','3']):
+def build_all(os_versions=['ubuntu','centos'],py_versions=['2','3'], publish=True):
     for os_version in os_versions:
-        build_os(os_version)
+        build_os(os_version, py_versions, publish=publish)
 
-#build_os('ubuntu',['2'])
+build_os('ubuntu',['2'], publish=False)
 #build_os('centos',['2'])
 
-build_all()
+# build_all()
