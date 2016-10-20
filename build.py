@@ -36,14 +36,14 @@ def gen_dockerfile(env):
         df.write(tplEnv.get_template('Dockerfile.%s.tpl' % os_name).render(env))
     return dockerfile
 
-envs = [{'os_name': 'centos', 'pyver': 2, 'variant': 'full'},
-        {'os_name': 'centos', 'pyver': 2, 'variant': 'core'},
-        {'os_name': 'centos', 'pyver': 3, 'variant': 'full'},
-        {'os_name': 'centos', 'pyver': 3, 'variant': 'core'},
+envs = [{'os_name': 'ubuntu', 'pyver': 3, 'variant': 'full'},
         {'os_name': 'ubuntu', 'pyver': 2, 'variant': 'full'},
-        {'os_name': 'ubuntu', 'pyver': 2, 'variant': 'core'},
-        {'os_name': 'ubuntu', 'pyver': 3, 'variant': 'full'},
+        {'os_name': 'centos', 'pyver': 3, 'variant': 'full'},
+        {'os_name': 'centos', 'pyver': 2, 'variant': 'full'},
+        {'os_name': 'centos', 'pyver': 2, 'variant': 'core'},
+        {'os_name': 'centos', 'pyver': 3, 'variant': 'core'},
         {'os_name': 'ubuntu', 'pyver': 3, 'variant': 'core'}
+        {'os_name': 'ubuntu', 'pyver': 2, 'variant': 'core'},
 ]
     
 files = list(map(gen_dockerfile,envs))
