@@ -1,5 +1,15 @@
-
-{% block os_setup %}{% endblock %}
+{% if os_name == "centos" %}
+FROM centos:latest
+RUN yum install -y \
+    bzip2 \
+    wget
+{% endif %}
+{% if os_name == "ubuntu" %}
+FROM ubuntu:latest
+RUN apt-get update && apt-get install -y \
+    bzip2 \
+    wget
+{% endif %}
 
 MAINTAINER Robert Cohn <Robert.S.Cohn@intel.com>
 

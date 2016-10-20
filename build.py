@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import jinja2
+import argparse
 
 def get_proxies():
     proxies = ''
@@ -30,26 +31,45 @@ def docker_build(dockerfiles, publish=True, dkr_acct='rscohn2'):
 tplEnv = jinja2.Environment(loader=jinja2.FileSystemLoader( searchpath="." ))
 
 def gen_dockerfile(env):
-    os_name = env['os_name']
-    pyver = env['pyver']
-    dockerfile = 'Dockerfile.idp%d_%s.%s' % (pyver,env['variant'],os_name)
+    dockerfile = 'Dockerfile.idp%d_%s.%s' % (env['pyver'],env['variant'],env['os_name'])
     with open(dockerfile,'w') as df:
-        df.write(tplEnv.get_template('Dockerfile.%s.tpl' % os_name).render(env))
+        df.write(tplEnv.get_template('Dockerfile.base.tpl').render(env))
     return dockerfile
 
-envs = [{'os_name': 'ubuntu', 'pyver': 3, 'variant': 'full'},
-        {'os_name': 'ubuntu', 'pyver': 2, 'variant': 'full'},
-        {'os_name': 'centos', 'pyver': 3, 'variant': 'full'},
-        {'os_name': 'centos', 'pyver': 2, 'variant': 'full'},
-        {'os_name': 'centos', 'pyver': 2, 'variant': 'core'},
-        {'os_name': 'centos', 'pyver': 3, 'variant': 'core'},
-        {'os_name': 'ubuntu', 'pyver': 3, 'variant': 'core'},
-        {'os_name': 'ubuntu', 'pyver': 2, 'variant': 'core'}
-]
-    
+def parseArgs():
+    argParser = argparse.ArgumentParser(description='Build Dockerfiles and images for IDP',
+                                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    argParser.add_argument('--os', default=None, nargs='+',
+                           help='operating system for docker image: centos, ubuntu')
+    argParser.add_argument('--pyver', default=None, type=int, nargs='+',
+                           help='python version for docker image: 2,3')
+    argParser.add_argument('--variant', default=None, nargs='+',
+                           help='distribution variants: core,full')
+    args = argParser.parse_args()
+    if not args.os:
+        args.os = ['centos','ubuntu']
+    if not args.pyver:
+        args.pyver = [2,3]
+    if not args.variant:
+        args.variant = ['full','core']
+    return args
+
+def genEnvs(args):
+    envs = []
+    for os in args.os:
+        for pyver in args.pyver:
+            for variant in args.variant:
+                envs.append({'os_name': os, 'pyver': pyver, 'variant': variant})
+    return envs
+
+args = parseArgs()
+envs = genEnvs(args)
 files = list(map(gen_dockerfile,envs))
-print(files)
+print('Building: ',files)
+docker_build(files)
+
+# Testing
 # docker_build(['Dockerfile.idp2_core.centos','Dockerfile.idp3_core.centos','Dockerfile.idp2_full.centos'], False)
 # docker_build(['Dockerfile.idp2_core.ubuntu'], False)
-docker_build(files)
+
 
