@@ -17,6 +17,7 @@ def docker_build(dockerfiles, publish=True, dkr_acct='rscohn2'):
             repo = '%s/%s.%s' % (dkr_acct,t[1],t[2])
             tags = '-t %s:2017u1 -t %s:latest' % (repo, repo)
             command = 'docker build %s %s --file %s .' % (get_proxies(),tags,dockerfile)
+            subprocess.check_call('df -h', shell=True)
             print(command)
             subprocess.check_call(command, shell=True)
             if publish:
