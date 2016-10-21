@@ -1,3 +1,4 @@
+
 {% if os_name == "centos" %}
 FROM centos:latest
 RUN yum install -y \
@@ -12,11 +13,25 @@ RUN apt-get update && apt-get install -y \
 {% endif %}
 
 MAINTAINER Robert Cohn <Robert.S.Cohn@intel.com>
+LABEL org.label-schema.build-date="{{build_date}}" \
+      org.label-schema.name="Intel Distribution for Python" \
+      org.label-schema.description="Python distribution containing scipy stack and related components" \
+      org.label-schema.url="https://software.intel.com/en-us/intel-distribution-for-python" \
+      org.label-schema.vcs-ref="{{vcs_ref}}" \
+      org.label-schema.vcs-url="https://github.com/rscohn2/IDP-docker-linux" \
+      org.label-schema.vendor="Intel" \
+      org.label-schema.schema-version="1.0"
 
 ARG MINICONDA=/usr/local/miniconda3
 ARG CHANNEL=intel
 ARG COMMON_CORE_PKGS="icc_rt tcl mkl openssl sqlite tk xz zlib"
 ARG COMMON_FULL_PKGS="impi_rt libsodium pixman yaml hdf5 libpng libxml2 zeromq freetype fontconfig cairo"
+
+# The docker layers are structured to share as much as possible between
+# images so downloads are smaller if you are using multiple images. For a given
+# OS, there is a shared layer that contains MKL, miniconda, and other common
+# components. Python2 or 3 core packages are installed in a layer on top. Full
+# packages are installed in a layer on top of core.
 
 # Use miniconda to install intel python
 RUN cd /tmp \

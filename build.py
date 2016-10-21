@@ -3,6 +3,7 @@ import os
 import subprocess
 import jinja2
 import argparse
+import datetime
 
 def get_proxies():
     proxies = ''
@@ -56,10 +57,12 @@ def parseArgs():
 
 def genEnvs(args):
     envs = []
+    build_date = datetime.datetime.now().strftime('%c')
+    vcs_ref = subprocess.check_output('git rev-parse --short HEAD',shell=True).strip()
     for os in args.os:
         for pyver in args.pyver:
             for variant in args.variant:
-                envs.append({'os_name': os, 'pyver': pyver, 'variant': variant})
+                envs.append({'os_name': os, 'pyver': pyver, 'variant': variant, 'build_date': build_date, 'vcs_ref': vcs_ref})
     return envs
 
 args = parseArgs()
