@@ -13,3 +13,7 @@ services:
 
 script:
         - python build.py --os $TARGET_OS
+
+branches:
+  only:
+  - master
