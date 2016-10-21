@@ -19,11 +19,11 @@ full intel distribution, using the latest centos or ubuntu.
 
 To build all images do:
 
-   python build.py 
+    python build.py 
 
 You can use command line arguments to build a subset. To see the help:
 
-   pythone build.py --help
+    python build.py --help
 
 ## How python is installed into the image
 
@@ -42,4 +42,4 @@ images so downloads are smaller.
 Images are built on https://travis-ci.org/rscohn2/IDP-docker-linux and
 published to https://hub.docker.com/r/rscohn2/
 
-[![Build Status](https://travis-ci.org/rscohn2/IDP-docker-ubuntu.svg?branch=master)](https://travis-ci.org/rscohn2/IDP-docker-linux)
+[![Build Status](https://travis-ci.org/rscohn2/IDP-docker-linux.svg?branch=master)](https://travis-ci.org/rscohn2/IDP-docker-linux)
