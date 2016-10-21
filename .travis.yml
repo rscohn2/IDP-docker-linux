@@ -1,7 +1,19 @@
+language: python
+
+env:
+        - TARGET_OS=centos
+        - TARGET_OS=ubuntu
+
+install: "pip install -r requirements.txt"
+
 sudo: required
 
 services:
         - docker
 
 script:
-        - python build.py
+        - python build.py --os $TARGET_OS
+
+branches:
+  only:
+  - master

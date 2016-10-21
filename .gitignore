@@ -1,2 +1,5 @@
 # emacs
 *~
+Dockerfile.*.centos
+Dockerfile.*.ubuntu
+

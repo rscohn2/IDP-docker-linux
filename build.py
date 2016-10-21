@@ -1,11 +1,9 @@
-import os
 import sys
+import os
 import subprocess
-
-dkr_acct = 'rscohn2'
-
-subprocess.check_call('docker login -u $DOCKER_USER -p $DOCKER_PASSWORD',shell=True)
-ret = 0
+import jinja2
+import argparse
+import datetime
 
 def get_proxies():
     proxies = ''
@@ -14,26 +12,67 @@ def get_proxies():
             proxies += ' --build-arg %s=%s' % (var,os.environ[var])
     return proxies
 
-def build_os(os_version,py_versions=['2','3']):
-    for py_version in py_versions:
+def docker_build(dockerfiles, publish=True, dkr_acct='rscohn2'):
+    for dockerfile in dockerfiles:
         try:
-            print('Building %s' % py_version)
-            repo = '%s/idp%s.%s' % (dkr_acct,py_version,os_version)
-            tags = '-t %s:2017b1 -t %s:latest' % (repo, repo)
-            command = 'docker build %s --build-arg PYVER=%s %s --file Dockerfile.%s .' % (get_proxies(),py_version,tags,os_version)
+            t = dockerfile.split('.')
+            repo = '%s/%s.%s' % (dkr_acct,t[1],t[2])
+            tags = '-t %s:2017.0 -t %s:latest' % (repo, repo)
+            command = 'docker build %s %s --file %s .' % (get_proxies(),tags,dockerfile)
+            subprocess.check_call('df -h', shell=True)
             print(command)
             subprocess.check_call(command, shell=True)
-            subprocess.check_call('docker push %s' % repo,shell=True)
+            if publish:
+                subprocess.check_call('docker login -u $DOCKER_USER -p $DOCKER_PASSWORD',shell=True)
+                subprocess.check_call('docker push %s' % repo,shell=True)
         except:
-            print('Failed building python%s for %s' % (py_version,os_version))
-            ret = 1
-            sys.exit(ret)
+            print('Failed building %s' % dockerfile)
+            sys.exit(1)
 
-def build_all(os_versions=['ubuntu','centos'],py_versions=['2','3']):
-    for os_version in os_versions:
-        build_os(os_version)
+tplEnv = jinja2.Environment(loader=jinja2.FileSystemLoader( searchpath="." ))
 
-#build_os('ubuntu',['2'])
-#build_os('centos',['2'])
+def gen_dockerfile(env):
+    dockerfile = 'Dockerfile.idp%d_%s.%s' % (env['pyver'],env['variant'],env['os_name'])
+    with open(dockerfile,'w') as df:
+        df.write(tplEnv.get_template('Dockerfile.base.tpl').render(env))
+    return dockerfile
 
-build_all()
+def parseArgs():
+    argParser = argparse.ArgumentParser(description='Build Dockerfiles and images for IDP',
+                                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    argParser.add_argument('--os', default=None, nargs='+',
+                           help='operating system for docker image: centos, ubuntu')
+    argParser.add_argument('--pyver', default=None, type=int, nargs='+',
+                           help='python version for docker image: 2,3')
+    argParser.add_argument('--variant', default=None, nargs='+',
+                           help='distribution variants: core,full')
+    args = argParser.parse_args()
+    if not args.os:
+        args.os = ['centos','ubuntu']
+    if not args.pyver:
+        args.pyver = [2,3]
+    if not args.variant:
+        args.variant = ['full','core']
+    return args
+
+def genEnvs(args):
+    envs = []
+    build_date = datetime.datetime.now().strftime('%c')
+    vcs_ref = subprocess.check_output('git rev-parse --short HEAD',shell=True).strip()
+    for os in args.os:
+        for pyver in args.pyver:
+            for variant in args.variant:
+                envs.append({'os_name': os, 'pyver': pyver, 'variant': variant, 'build_date': build_date, 'vcs_ref': vcs_ref})
+    return envs
+
+args = parseArgs()
+envs = genEnvs(args)
+files = list(map(gen_dockerfile,envs))
+print('Building: ',files)
+docker_build(files)
+
+# Testing
+# docker_build(['Dockerfile.idp2_core.centos','Dockerfile.idp3_core.centos','Dockerfile.idp2_full.centos'], False)
+# docker_build(['Dockerfile.idp2_core.ubuntu'], False)
+
+
