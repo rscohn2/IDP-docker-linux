@@ -12,47 +12,54 @@ def get_proxies():
             proxies += ' --build-arg %s=%s' % (var,os.environ[var])
     return proxies
 
-def docker_build(dockerfiles, publish=True, dkr_acct='rscohn2'):
-    for dockerfile in dockerfiles:
-        try:
-            t = dockerfile.split('.')
-            repo = '%s/%s.%s' % (dkr_acct,t[1],t[2])
-            tags = '-t %s:2017.0 -t %s:latest' % (repo, repo)
-            command = 'docker build %s %s --file %s .' % (get_proxies(),tags,dockerfile)
-            subprocess.check_call('df -h', shell=True)
-            print(command)
-            subprocess.check_call(command, shell=True)
-            if publish:
-                subprocess.check_call('docker login -u $DOCKER_USER -p $DOCKER_PASSWORD',shell=True)
-                subprocess.check_call('docker push %s' % repo,shell=True)
-        except:
-            print('Failed building %s' % dockerfile)
-            sys.exit(1)
+def docker_build(envs):
+    proxies = get_proxies()
+    for env in envs:
+        dockerfile = dockerfileName(env)
+        repo = 'rscohn2/%s' % repoName(env)
+        tags = '-t %s:2017.0 -t %s:latest' % (repo, repo)
+        command = 'docker build %s %s --file %s .' % (proxies,tags,dockerfile)
+        subprocess.check_call('df -h', shell=True)
+        print(command)
+        subprocess.check_call(command, shell=True)
+        if args.publish:
+            subprocess.check_call('docker login -u $DOCKER_USER -p $DOCKER_PASSWORD',shell=True)
+            subprocess.check_call('docker push %s' % repo,shell=True)
 
 tplEnv = jinja2.Environment(loader=jinja2.FileSystemLoader( searchpath="." ))
 
-def gen_dockerfile(env):
-    dockerfile = 'Dockerfile.idp%d_%s.%s' % (env['pyver'],env['variant'],env['os_name'])
-    with open(dockerfile,'w') as df:
-        df.write(tplEnv.get_template('Dockerfile.base.tpl').render(env))
-    return dockerfile
+def repoName(env):
+    return 'idp%d_%s.%s' % (env['pyver'],env['variant'],env['os_name'])
 
+def dockerfileName(env):
+    return 'Dockerfile.%s' % repoName(env)
+
+def gen_dockerfiles(envs):
+    for env in envs:
+        dockerfile = 'Dockerfile.idp%d_%s.%s' % (env['pyver'],env['variant'],env['os_name'])
+        with open(dockerfile,'w') as df:
+            df.write(tplEnv.get_template('Dockerfile.base.tpl').render(env))
+
+default_os = ['centos','ubuntu']
+default_pyver = [2,3]
+default_variant = ['full','core']
 def parseArgs():
     argParser = argparse.ArgumentParser(description='Build Dockerfiles and images for IDP',
                                         formatter_class=argparse.RawDescriptionHelpFormatter)
+    argParser.add_argument('--publish', default=False, action='store_true', help='publish on dockerhub')
     argParser.add_argument('--os', default=None, nargs='+',
-                           help='operating system for docker image: centos, ubuntu')
+                           help='operating system for docker image. Default: %s' % default_os)
     argParser.add_argument('--pyver', default=None, type=int, nargs='+',
-                           help='python version for docker image: 2,3')
+                           help='python version for docker image. Default: %s' % default_pyver)
     argParser.add_argument('--variant', default=None, nargs='+',
-                           help='distribution variants: core,full')
+                           help='distribution variants. Default: %s' % default_variant)
     args = argParser.parse_args()
     if not args.os:
-        args.os = ['centos','ubuntu']
+        args.os = default_os
     if not args.pyver:
-        args.pyver = [2,3]
+        args.pyver = default_pyver
     if not args.variant:
-        args.variant = ['full','core']
+        args.variant = default_variant
     return args
 
 def genEnvs(args):
@@ -67,9 +74,8 @@ def genEnvs(args):
 
 args = parseArgs()
 envs = genEnvs(args)
-files = list(map(gen_dockerfile,envs))
-print('Building: ',files)
-docker_build(files)
+gen_dockerfiles(envs)
+docker_build(envs)
 
 # Testing
 # docker_build(['Dockerfile.idp2_core.centos','Dockerfile.idp3_core.centos','Dockerfile.idp2_full.centos'], False)

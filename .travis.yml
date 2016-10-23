@@ -12,7 +12,7 @@ services:
         - docker
 
 script:
-        - python build.py --os $TARGET_OS
+        - python build.py --os $TARGET_OS --publish
 
 branches:
   only:
