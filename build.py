@@ -17,7 +17,7 @@ def docker_build(envs):
     for env in envs:
         dockerfile = dockerfileName(env)
         repo = 'rscohn2/%s' % repoName(env)
-        tags = '-t %s:2017.0 -t %s:latest' % (repo, repo)
+        tags = '-t %s:%s -t %s:latest' % (repo, args.rev, repo)
         command = 'docker build %s %s --file %s .' % (proxies,tags,dockerfile)
         subprocess.check_call('df -h', shell=True)
         print(command)
@@ -47,6 +47,8 @@ def parseArgs():
     argParser = argparse.ArgumentParser(description='Build Dockerfiles and images for IDP',
                                         formatter_class=argparse.RawDescriptionHelpFormatter)
     argParser.add_argument('--publish', default=False, action='store_true', help='publish on dockerhub')
+    argParser.add_argument('--rev', default=None, 
+                           help='version of conda meta package')
     argParser.add_argument('--os', default=None, nargs='+',
                            help='operating system for docker image. Default: %s' % default_os)
     argParser.add_argument('--pyver', default=None, type=int, nargs='+',
@@ -69,7 +71,12 @@ def genEnvs(args):
     for os in args.os:
         for pyver in args.pyver:
             for variant in args.variant:
-                envs.append({'os_name': os, 'pyver': pyver, 'variant': variant, 'build_date': build_date, 'vcs_ref': vcs_ref})
+                envs.append({'os_name': os, 
+                             'pyver': pyver, 
+                             'variant': variant, 
+                             'build_date': build_date, 
+                             'rev': args.rev, 
+                             'vcs_ref': vcs_ref})
     return envs
 
 args = parseArgs()

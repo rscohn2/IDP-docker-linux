@@ -1,11 +1,9 @@
-
 {% if os_name == "centos" %}
 FROM centos:latest
 RUN yum install -y \
     bzip2 \
     wget
-{% endif %}
-{% if os_name == "ubuntu" %}
+{% elif os_name == "ubuntu" %}
 FROM ubuntu:latest
 RUN apt-get update && apt-get install -y \
     bzip2 \
@@ -13,14 +11,6 @@ RUN apt-get update && apt-get install -y \
 {% endif %}
 
 MAINTAINER Robert Cohn <Robert.S.Cohn@intel.com>
-LABEL org.label-schema.build-date="{{build_date}}" \
-      org.label-schema.name="Intel Distribution for Python" \
-      org.label-schema.description="Python distribution containing scipy stack and related components" \
-      org.label-schema.url="https://software.intel.com/en-us/intel-distribution-for-python" \
-      org.label-schema.vcs-ref="{{vcs_ref}}" \
-      org.label-schema.vcs-url="https://github.com/rscohn2/IDP-docker-linux" \
-      org.label-schema.vendor="Intel" \
-      org.label-schema.schema-version="1.0"
 
 ARG MINICONDA=/usr/local/miniconda3
 ARG CHANNEL=intel
@@ -47,13 +37,24 @@ RUN $MINICONDA/bin/conda config --add channels $CHANNEL \
     && $MINICONDA/bin/conda env remove -n idp_common
 
 # Create IDP environment
-RUN ACCEPT_INTEL_PYTHON_EULA=yes $MINICONDA/bin/conda create -q -y -n idp intelpython{{pyver}}_core python={{pyver}}
+RUN ACCEPT_INTEL_PYTHON_EULA=yes $MINICONDA/bin/conda create -q -y -n idp intelpython{{pyver}}_core={{rev}} python={{pyver}}
+LABEL org.label-schema.intel-python-package="intelpython{{pyver}}_core={{rev}}"
 
 {% if variant == "full" %}
 # Download packages that are common to python2 &3 so they will be in a separate layer and shared
 RUN ACCEPT_INTEL_PYTHON_EULA=yes $MINICONDA/bin/conda create -q -y -n idp_common ${COMMON_FULL_PKGS} \
     && $MINICONDA/bin/conda env remove -n idp_common
-RUN ACCEPT_INTEL_PYTHON_EULA=yes $MINICONDA/bin/conda install -q -y -n idp intelpython{{pyver}}_full python={{pyver}}
+RUN ACCEPT_INTEL_PYTHON_EULA=yes $MINICONDA/bin/conda install -q -y -n idp intelpython{{pyver}}_full={{rev}} python={{pyver}}
+LABEL org.label-schema.intel-python-package="intelpython{{pyver}}_full={{rev}}"
 {% endif %}
 
 RUN ln -s $MINICONDA/envs/idp .
+
+LABEL org.label-schema.build-date="{{build_date}}" \
+      org.label-schema.name="Intel Distribution for Python" \
+      org.label-schema.description="Python distribution containing scipy stack and related components" \
+      org.label-schema.url="https://software.intel.com/en-us/intel-distribution-for-python" \
+      org.label-schema.vcs-ref="{{vcs_ref}}" \
+      org.label-schema.vcs-url="https://github.com/rscohn2/IDP-docker-linux" \
+      org.label-schema.vendor="Intel" \
+      org.label-schema.schema-version="1.0"
