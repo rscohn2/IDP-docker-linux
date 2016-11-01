@@ -53,7 +53,7 @@ def build_images(args,envs):
         tag = '%s:%s' % (repo, args.rev)
         tagstring = ''
         for tag in env['tags']:
-            tagstring += (' -t %s' % tag)
+            tagstring += (' -t %s:%s' % (repo,tag))
         command = 'docker build %s %s --file %s .' % (proxies,tagstring,dockerfile)
         subprocess.check_call('df -h', shell=True)
         print(command)
