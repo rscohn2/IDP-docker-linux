@@ -21,9 +21,10 @@ variant_tests = {
     'full': '-c "import pandas;import jupyter"'
 }
 
-def test(tag, env):
-    subprocess.check_call('docker run --rm -t %s python %s' 
-                          % (tag,variant_tests[env['variant']]),shell=True)
+def test(repo, env):
+    cmd = 'docker run --rm -t %s:%s python %s' % (repo,env['tags'][0],variant_tests[env['variant']])
+    print(cmd)
+    subprocess.check_call(cmd,shell=True)
 
 webhooks = {
     'rscohn2/idp2_core.ubuntu': 'https://hooks.microbadger.com/images/rscohn2/idp2_core.ubuntu/KToFO4mXwId81ddvWhWdxivWAHU=',
@@ -50,7 +51,6 @@ def build_images(args,envs):
     for env in envs:
         dockerfile = dockerfile_name(env)
         repo = 'rscohn2/%s' % repo_name(env)
-        tag = '%s:%s' % (repo, args.rev)
         tagstring = ''
         for tag in env['tags']:
             tagstring += (' -t %s:%s' % (repo,tag))
@@ -58,7 +58,7 @@ def build_images(args,envs):
         subprocess.check_call('df -h', shell=True)
         print(command)
         subprocess.check_call(command, shell=True)
-        test(tag,env)
+        test(repo,env)
         if args.publish:
             publish(env,repo)
 
