@@ -61,7 +61,9 @@ LABEL org.label-schema.intel-python-package="intelpython{{pyver}}_full={{rev}}"
 
 RUN ln -s $MINICONDA/envs/idp $INSTALL_LOCATION
 
-LABEL org.label-schema.build-date="{{build_date}}" \
+LABEL name="Intel Distribution for Python using {{os_name}}" \
+      build-date="{{build_date}}" \
+      org.label-schema.build-date="{{build_date}}" \
       org.label-schema.name="Intel Distribution for Python" \
       org.label-schema.description="Python distribution containing scipy stack and related components" \
       org.label-schema.url="https://software.intel.com/en-us/intel-distribution-for-python" \
