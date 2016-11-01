@@ -37,9 +37,12 @@ webhooks = {
     'rscohn2/idp3_full.centos': 'https://hooks.microbadger.com/images/rscohn2/idp3_full.centos/-kTrFVPuxsRGqB38QvIVGBfp7eE='
 }
 
-def publish(tag,repo):
+def publish(env, repo):
     subprocess.check_call('docker login -u $DOCKER_USER -p $DOCKER_PASSWORD',shell=True)
-    subprocess.check_call('docker push %s' % tag,shell=True)
+    for tag in env['tags']:
+        cmd = 'docker push %s:%s' % (repo,tag)
+        print(cmd)
+        subprocess.check_call(cmd, shell=True)
     requests.post(webhooks[repo])
         
 def build_images(args,envs):
@@ -48,16 +51,16 @@ def build_images(args,envs):
         dockerfile = dockerfile_name(env)
         repo = 'rscohn2/%s' % repo_name(env)
         tag = '%s:%s' % (repo, args.rev)
-        tags = '-t %s' % tag
-        if args.latest:
-            tags = tags + ' -t %s:latest' % repo
-        command = 'docker build %s %s --file %s .' % (proxies,tags,dockerfile)
+        tagstring = ''
+        for tag in env['tags']:
+            tagstring += (' -t %s' % tag)
+        command = 'docker build %s %s --file %s .' % (proxies,tagstring,dockerfile)
         subprocess.check_call('df -h', shell=True)
         print(command)
         subprocess.check_call(command, shell=True)
         test(tag,env)
         if args.publish:
-            publish(tag,repo)
+            publish(env,repo)
 
 tplEnv = jinja2.Environment(loader=jinja2.FileSystemLoader( searchpath="." ))
 
@@ -112,9 +115,13 @@ def gen_envs(args):
     for os in args.os:
         for pyver in args.pyver:
             for variant in args.variant:
+                tags = [args.rev]
+                if args.latest:
+                    tags.append('latest')
                 envs.append({'os_name': os, 
                              'pyver': pyver, 
                              'variant': variant, 
+                             'tags': tags, 
                              'build_date': build_date, 
                              'rev': args.rev, 
                              'vcs_ref': vcs_ref
