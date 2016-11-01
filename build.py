@@ -4,6 +4,7 @@ import subprocess
 import jinja2
 import argparse
 import datetime
+import requests
 
 
 def get_proxies():
@@ -24,9 +25,22 @@ def test(tag, env):
     subprocess.check_call('docker run --rm -t %s python %s' 
                           % (tag,variant_tests[env['variant']]),shell=True)
 
-def publish(tag):
+webhooks = {
+    'rscohn2/idp2_core.ubuntu': 'https://hooks.microbadger.com/images/rscohn2/idp2_core.ubuntu/KToFO4mXwId81ddvWhWdxivWAHU=',
+    'rscohn2/idp2_full.ubuntu': 'https://hooks.microbadger.com/images/rscohn2/idp2_full.ubuntu/zdoYwQ7b4B-zsXhHW0FXgtuMNi8=',
+    'rscohn2/idp3_core.ubuntu': 'https://hooks.microbadger.com/images/rscohn2/idp3_core.ubuntu/6GIL7jewsK_CMZHQNy_ma9xYnm4=',
+    'rscohn2/idp3_full.ubuntu': 'https://hooks.microbadger.com/images/rscohn2/idp3_full.ubuntu/oBaaBH1ieXNml43ye_VYmE3KDJk=',
+
+    'rscohn2/idp2_core.centos': 'https://hooks.microbadger.com/images/rscohn2/idp2_core.centos/Ecf_g9ojF8Y1ALHYZerbd_PBYFw=',
+    'rscohn2/idp2_full.centos': 'https://hooks.microbadger.com/images/rscohn2/idp2_full.centos/gWpEuZP36ASNNx5HCtik-SHUJkM=',
+    'rscohn2/idp3_core.centos': 'https://hooks.microbadger.com/images/rscohn2/idp3_core.centos/mIo0wFW_TzrZBAsNKVZv10ioftM=',
+    'rscohn2/idp3_full.centos': 'https://hooks.microbadger.com/images/rscohn2/idp3_full.centos/-kTrFVPuxsRGqB38QvIVGBfp7eE='
+}
+
+def publish(tag,repo):
     subprocess.check_call('docker login -u $DOCKER_USER -p $DOCKER_PASSWORD',shell=True)
     subprocess.check_call('docker push %s' % tag,shell=True)
+    requests.post(webhooks[repo])
         
 def build_images(args,envs):
     proxies = get_proxies()
@@ -43,7 +57,7 @@ def build_images(args,envs):
         subprocess.check_call(command, shell=True)
         test(tag,env)
         if args.publish:
-            publish(tag)
+            publish(tag,repo)
 
 tplEnv = jinja2.Environment(loader=jinja2.FileSystemLoader( searchpath="." ))
 
@@ -70,6 +84,7 @@ default_variant = ['full','core']
 def parse_args():
     argParser = argparse.ArgumentParser(description='Build Dockerfiles and images for IDP',
                                         formatter_class=argparse.RawDescriptionHelpFormatter)
+    argParser.add_argument('--badges', default=False, action='store_true', help='dump badges for inclusion in README.md')
     argParser.add_argument('--publish', default=False, action='store_true', help='publish on dockerhub')
     argParser.add_argument('--latest', default=False, action='store_true', help='assign latest tag to this build')
     argParser.add_argument('--rev', default=None, 
@@ -106,9 +121,20 @@ def gen_envs(args):
                          })
     return envs
 
+def dump_badges(envs):
+    for env in envs:
+        repo = 'rscohn2/%s' % repo_name(env)
+        print('%s: ' % repo)
+        for badge in ['version','commit','image']:
+            print('[![](https://images.microbadger.com/badges/%s/%s.svg)](https://microbadger.com/images/%s "Get your own image badge on microbadger.com")' % (badge,repo,repo))
+        print('')
+
 def main():
     args = parse_args()
     envs = gen_envs(args)
+    if args.badges:
+        dump_badges(envs)
+        sys.exit(0)
     gen_dockerfiles(envs)
     build_images(args,envs)
 
