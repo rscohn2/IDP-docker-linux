@@ -70,9 +70,10 @@ You can use command line arguments to build a subset. To see the help:
 
 ## How python is installed into the image
 
-It uses miniconda as the installer and creates a conda environment in
-/usr/local/miniconda3/envs/idp. A symbolic link is created from
-/opt/conda and /opt/conda is added to the path.
+The dockerfile downloads/installs miniconda, and then creates a conda
+environment in /usr/local/miniconda3/envs/idp. /opt/conda is a a
+symbolic link to /usr/local/miniconda3/envs/idp and /opt/conda/bin is
+added to the path.
 
 ## How the docker images are built
 
