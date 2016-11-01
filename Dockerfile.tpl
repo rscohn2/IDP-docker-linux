@@ -12,10 +12,19 @@ RUN apt-get update && apt-get install -y \
 
 MAINTAINER Robert Cohn <Robert.S.Cohn@intel.com>
 
+# do not use latest because of 4.2.11 issue: https://github.com/conda/conda/issues/3775
+ARG MINICONDA_PACKAGE=Miniconda3-4.1.11-Linux-x86_64.sh
 ARG MINICONDA=/usr/local/miniconda3
 ARG CHANNEL=intel
 ARG COMMON_CORE_PKGS="icc_rt tcl mkl openssl sqlite tk xz zlib"
 ARG COMMON_FULL_PKGS="impi_rt libsodium pixman yaml hdf5 libpng libxml2 zeromq freetype fontconfig cairo"
+ARG INSTALL_LOCATION=/opt/conda
+
+# Add Tini
+ENV TINI_VERSION v0.10.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
 
 # The docker layers are structured to share as much as possible between
 # images so downloads are smaller if you are using multiple images. For a given
@@ -23,12 +32,14 @@ ARG COMMON_FULL_PKGS="impi_rt libsodium pixman yaml hdf5 libpng libxml2 zeromq f
 # components. Python2 or 3 core packages are installed in a layer on top. Full
 # packages are installed in a layer on top of core.
 
+ENV PATH $INSTALL_LOCATION/bin:$PATH
+
 # Use miniconda to install intel python
 RUN cd /tmp \
-    && wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && chmod +x /tmp/Miniconda3-latest-Linux-x86_64.sh \
-    && /tmp/Miniconda3-latest-Linux-x86_64.sh -b -p $MINICONDA \
-    && rm /tmp/Miniconda3-latest-Linux-x86_64.sh \
+    && wget -q https://repo.continuum.io/miniconda/$MINICONDA_PACKAGE \
+    && chmod +x /tmp/$MINICONDA_PACKAGE \
+    && /tmp/$MINICONDA_PACKAGE -b -p $MINICONDA \
+    && rm /tmp/$MINICONDA_PACKAGE \
     && $MINICONDA/bin/conda update -y -q conda
 
 # Download packages that are common to python2 &3 so they will be in a separate layer and shared
@@ -48,7 +59,7 @@ RUN ACCEPT_INTEL_PYTHON_EULA=yes $MINICONDA/bin/conda install -q -y -n idp intel
 LABEL org.label-schema.intel-python-package="intelpython{{pyver}}_full={{rev}}"
 {% endif %}
 
-RUN ln -s $MINICONDA/envs/idp .
+RUN ln -s $MINICONDA/envs/idp $INSTALL_LOCATION
 
 LABEL org.label-schema.build-date="{{build_date}}" \
       org.label-schema.name="Intel Distribution for Python" \

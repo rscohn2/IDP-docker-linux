@@ -1,5 +1,6 @@
+# generated dockerfiles
+dockerfiles
+
 # emacs
 *~
-Dockerfile.*.centos
-Dockerfile.*.ubuntu
 
