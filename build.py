@@ -54,6 +54,11 @@ def dockerfile_name(env):
     return 'dockerfiles/Dockerfile.%s' % repo_name(env)
 
 def gen_dockerfiles(envs):
+    try:
+        os.mkdir('dockerfiles')
+    except OSError:
+        # already exists
+        pass
     for env in envs:
         dockerfile = dockerfile_name(env)
         with open(dockerfile,'w') as df:
