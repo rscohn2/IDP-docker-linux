@@ -24,7 +24,6 @@ ARG INSTALL_LOCATION=/opt/conda
 ENV TINI_VERSION v0.10.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
-ENTRYPOINT ["/tini", "--"]
 
 # The docker layers are structured to share as much as possible between
 # images so downloads are smaller if you are using multiple images. For a given
@@ -71,3 +70,6 @@ LABEL name="Intel Distribution for Python using {{os_name}}" \
       org.label-schema.vcs-url="https://github.com/rscohn2/IDP-docker-linux" \
       org.label-schema.vendor="Intel" \
       org.label-schema.schema-version="1.0"
+
+ENTRYPOINT ["/tini", "--"]
+CMD ["/bin/bash"]
